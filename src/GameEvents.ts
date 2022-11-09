@@ -7,4 +7,5 @@ export class GameEvents {
   public static BALL_LOST = "BALL_LOST";
   public static NEXT_LEVEL = "NEXT_LEVEL";
   public static BALL_ACTIVE = "BALL_ACTIVE";
+  public static PIECE_HIDE = "PIECE_HIDE";
 }

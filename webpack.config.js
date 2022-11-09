@@ -30,7 +30,12 @@ module.exports = {
             filename: 'index.html',
             template: './src/index.html',
             inject: 'body'
-        })
+        }),
+        new CopyPlugin({
+            patterns: [
+              { from: "src/assets", to: "assets" }
+            ],
+          }),
     ],
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],

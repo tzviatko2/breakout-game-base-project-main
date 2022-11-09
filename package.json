@@ -10,6 +10,7 @@
     "author": "rlavoie",
     "license": "MIT",
     "dependencies": {
+        "@pixi/sound": "^5.0.0",
         "@types/greensock": "^1.15.32",
         "core-js": "^3.20.3",
         "gsap": "^3.10.4",

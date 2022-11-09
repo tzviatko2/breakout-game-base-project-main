@@ -4,13 +4,18 @@ import * as PIXI from "pixi.js";
 import { GameApplication } from "../../GameApplication";
 import { EventDispatcher } from "../../EventDispatcher";
 import { GameEvents } from "../../GameEvents";
+import { BrickType } from "../level/BrickType";
 
 export class PaddleBehavior extends GameObjectBehavior {
   private VELOCITY = 15;
   private direction = 0;
+  private timeOutId: NodeJS.Timeout;
+  private intervalId: NodeJS.Timer;
+  private justHit = false;
 
   constructor(gameObjRef: GameObject) {
     super(gameObjRef);
+    
   }
 
   public update(deltaTime: number) {
@@ -27,14 +32,15 @@ export class PaddleBehavior extends GameObjectBehavior {
 
   protected init() {
     this.setInitialPosition();
-
+    
+    
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
     document.addEventListener("keydown", this.onKeyDown);
     document.addEventListener("keyup", this.onKeyUp);
-    EventDispatcher.getInstance()
-      .getDispatcher()
-      .on(GameEvents.NEXT_LEVEL, this.setInitialPosition, this);
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.NEXT_LEVEL, this.setInitialPosition, this);
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.BRICK_HIT, this.onBrickHit, this);
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.PIECE_HIDE, this.onPieceHit, this);
   }
 
   private setInitialPosition() {
@@ -98,5 +104,64 @@ export class PaddleBehavior extends GameObjectBehavior {
     } else {
       this.gameObjRef.x = GameApplication.STAGE_WIDTH - this.gameObjRef.width;
     }
+  }
+  private onBrickHit(e: any) {
+    
+    
+    if (e.brickType === BrickType.TYPE_3) {
+      
+      this.gameObjRef.width *= 1.2;
+
+      
+      if(this.timeOutId) {
+        clearTimeout(this.timeOutId)
+      }
+
+      this.timeOutId = setTimeout(() => {
+        
+        this.gameObjRef.width = 60;
+      }, 5000);
+    }
+  }
+  private onPieceHit(e: any) {
+    if (this.justHit) {
+      return;
+    }
+    
+    this.justHit = true;
+    setTimeout(() => {
+      this.justHit = false;
+    }, 500);
+    console.log("hi")
+    let counter = 0;
+    this.intervalId = setInterval(() => {
+      (this.gameObjRef.getRenderableById("paddleImg") as PIXI.Sprite).tint = (counter % 2 === 0) ? 0xff0000 : 0xfffff;
+    
+      counter++;
+    }, 500);
+
+// if(this.intervalId) {
+//   clearInterval(this.intervalId);
+// }
+
+setTimeout(() => {  
+  clearInterval(this.intervalId);
+  (this.gameObjRef.getRenderableById("paddleImg") as PIXI.Sprite).tint = 0xffffff;
+}, 5000);
+    //(this.gameObjRef.getRenderableById("paddleImg") as PIXI.Sprite).tint = 0xff0000;
+    
+      //console.log(this.gameObjRef.getRenderableById("paddleImg"));
+      //(this.gameObjRef.getRenderableById("paddle") as PIXI.Sprite).tint = 0xff0000;
+
+      //console.log(this.gameObjRef.getId("paddle"));
+      // if(this.timeOutId) {
+      //   clearTimeout(this.timeOutId)
+      // }
+
+      // this.timeOutId = setTimeout(() => {
+        
+      //   this.gameObjRef.width = 60;
+      // }, 5000);
+    
   }
 }

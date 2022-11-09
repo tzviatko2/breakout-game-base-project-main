@@ -11,6 +11,8 @@ import { Model } from "./Model";
 import { BrickType } from "./game/level/BrickType";
 import { EndScreen } from "./views/EndScreen";
 import { LostState } from "./states/LostState";
+import { GameApplication } from "./GameApplication";
+import { sound } from "@pixi/sound";
 
 export class GameController extends PIXI.Container {
   private endScreen: EndScreen;
@@ -21,10 +23,12 @@ export class GameController extends PIXI.Container {
   private currentState: IGameState;
   private gameContainer: PIXI.Container;
   private uiContainer: PIXI.Container;
+    
 
   constructor() {
     super();
     this.init();
+    
   }
 
   public changeGameState(newState: IGameState) {
@@ -49,9 +53,8 @@ export class GameController extends PIXI.Container {
 
   public showGame() {
     this.game.show();
-    EventDispatcher.getInstance()
-      .getDispatcher()
-      .emit(GameEvents.NEXT_LEVEL, { level: 1 });
+    EventDispatcher.getInstance().getDispatcher().emit(GameEvents.NEXT_LEVEL, { level: 3 });
+    
   }
 
   public showScore() {
@@ -74,16 +77,16 @@ export class GameController extends PIXI.Container {
     this.game.hide();
   }
 
-  private init() {
+  private init() {   
     this.createContainers();
     this.createViews();
     this.resetGame();
     this.setInitialGameState();
     this.addKeyÚpListener();
-
-    EventDispatcher.getInstance()
-      .getDispatcher()
-      .on(GameEvents.BALL_LOST, this.onBallLost, this);
+    
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.BALL_LOST, this.onBallLost, this);
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.BRICK_HIDE, this.checkEndOfLevel, this);
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.BRICK_HIDE, this.updateScore, this);
   }
 
   private addKeyÚpListener() {
@@ -95,7 +98,7 @@ export class GameController extends PIXI.Container {
     this.changeGameState(new EnterState(this));
     this.currentState.gameEnter();
   }
-
+  
   private createContainers() {
     this.uiContainer = new PIXI.Container();
     this.gameContainer = new PIXI.Container();
@@ -109,9 +112,13 @@ export class GameController extends PIXI.Container {
     this.addChild(this.game);
 
     this.scoreView = new ScoreView();
+    this.scoreView.x = GameApplication.STAGE_WIDTH * 0.7;
+    this.scoreView.y = GameApplication.STAGE_HEIGHT * 0.9;
     this.addChild(this.scoreView);
 
     this.nbrBallView = new NbrBallView();
+    this.nbrBallView.x = GameApplication.STAGE_WIDTH * 0.05;
+    this.nbrBallView.y = GameApplication.STAGE_HEIGHT* 0.9;
     this.addChild(this.nbrBallView);
 
     this.startScreen = new StartScreen();
@@ -127,8 +134,8 @@ export class GameController extends PIXI.Container {
     this.nbrBallView.setNbrBall(Model.getInstance().getTotalNbrBall());
   }
 
-  private updateScore(brickType: BrickType) {
-    switch (brickType) {
+  private updateScore(e: any) {
+    switch (e.brickType) {
       case BrickType.TYPE_1:
         Model.getInstance().addScore(1);
         break;
@@ -151,10 +158,7 @@ export class GameController extends PIXI.Container {
       Model.getInstance().incrementNbrBall();
       this.nbrBallView.setNbrBall(Model.getInstance().getTotalNbrBall());
       EventDispatcher.getInstance()
-        .getDispatcher()
-        .emit(GameEvents.NEXT_LEVEL, {
-          level: Model.getInstance().getCurrentLevel(),
-        });
+        .getDispatcher().emit(GameEvents.NEXT_LEVEL, {level: Model.getInstance().getCurrentLevel()});
     }
   }
 
@@ -165,8 +169,17 @@ export class GameController extends PIXI.Container {
     ) {
       this.currentState.gameStart();
       EventDispatcher.getInstance().getDispatcher().emit(GameEvents.GAME_START);
+      sound.add('game-sound', './assets/sound/mixkit-game-level-music-689.wav');
+      sound.play('game-sound');
     }
   }
 
-  private onBallLost() {}
+  private onBallLost() {
+    Model.getInstance().decrementNbrBall();
+    if(Model.getInstance().getTotalNbrBall() <= 0) {
+      this.resetGame();
+      this.currentState.gameLost();    
+    }
+    this.nbrBallView.setNbrBall(Model.getInstance().getTotalNbrBall());
+  }
 }

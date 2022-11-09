@@ -20,6 +20,7 @@ export class BallBehavior extends GameObjectBehavior {
   private velocity = 0;
   private angle: number;
   private justHit = false;
+  private timeOutId: NodeJS.Timeout;
 
   constructor(gameObjRef: GameObject) {
     super(gameObjRef);
@@ -27,24 +28,19 @@ export class BallBehavior extends GameObjectBehavior {
 
   public update(deltaTime: number) {
     if (!this.isPlaying) {
-      this.followPaddle();
+      this.followPaddle();      
     } else {
-      this.move(deltaTime);
+      this.move(deltaTime); 
     }
+    
   }
 
   protected init() {
-    this.ballImg = this.gameObjRef.getRenderableById("ballImg") as PIXI.Sprite;
-    this.paddleRef = this.gameObjRef
-      .getGameViewRef()
-      .getGameObjectById("paddle") as GameObject;
+    this.ballImg = this.gameObjRef.getRenderableById("ballImg") as PIXI.Sprite;    
+    this.paddleRef = this.gameObjRef.getGameViewRef().getGameObjectById("paddle") as GameObject;
     this.onKeyDown = this.onKeyDown.bind(this);
-    EventDispatcher.getInstance()
-      .getDispatcher()
-      .on(GameEvents.BRICK_HIT, this.onBrickHit, this);
-    EventDispatcher.getInstance()
-      .getDispatcher()
-      .on(GameEvents.NEXT_LEVEL, () => (this.isPlaying = false));
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.BRICK_HIT, this.onBrickHit, this);
+    EventDispatcher.getInstance().getDispatcher().on(GameEvents.NEXT_LEVEL, () => (this.isPlaying = false));
     document.addEventListener("keydown", this.onKeyDown);
   }
 
@@ -75,11 +71,10 @@ export class BallBehavior extends GameObjectBehavior {
   }
 
   private ballLost() {
+    clearTimeout(this.timeOutId);
     this.ballImg.tint = 0xffffff;
     this.isPlaying = false;
-    EventDispatcher.getInstance()
-      .getDispatcher()
-      .emit(GameEvents.BALL_LOST, { objId: this.gameObjRef.getId() });
+    EventDispatcher.getInstance().getDispatcher().emit(GameEvents.BALL_LOST, { objId: this.gameObjRef.getId() });
   }
 
   private checkOutOfBound(moveDist: PIXI.Point): boolean {
@@ -222,17 +217,16 @@ export class BallBehavior extends GameObjectBehavior {
       this.angle = 180;
       this.velocity = 6;
       this.isPlaying = true;
-      EventDispatcher.getInstance()
-        .getDispatcher()
-        .emit(GameEvents.BALL_ACTIVE);
+      EventDispatcher.getInstance().getDispatcher().emit(GameEvents.BALL_ACTIVE);
     }
   }
 
   private onBrickHit(e: any) {
+    
     if (this.justHit) {
       return;
     }
-
+    
     this.justHit = true;
 
     this.bounceBrick();
@@ -244,7 +238,12 @@ export class BallBehavior extends GameObjectBehavior {
     if (e.brickType === BrickType.TYPE_3) {
       this.velocity = 10;
       this.ballImg.tint = 0xff0000;
-      setTimeout(() => {
+      
+      if(this.timeOutId) {
+        clearTimeout(this.timeOutId)
+      }
+
+      this.timeOutId = setTimeout(() => {
         this.velocity = 6;
         this.ballImg.tint = 0xffffff;
       }, 5000);

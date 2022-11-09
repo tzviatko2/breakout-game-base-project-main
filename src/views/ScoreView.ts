@@ -6,45 +6,52 @@ import { EventDispatcher } from "../EventDispatcher";
 import { BrickType } from "../game/level/BrickType";
 
 export class ScoreView extends BaseView {
-  private score: PIXI.Text;
-  private nbrScore: number;
+  private scoreText: PIXI.Text;
+  private label: PIXI.Text;
 
   constructor() {
     super();
   }
 
-  public setScore(score: number) {}
+  public setScore(score: number) { 
+    this.scoreText.text = score.toString(10).padStart(4, "0");
+  }
 
   protected init() {
     super.init();
-    this.createScore();
+    this.createText();
   }
   protected createBackground() {
     this.background = new PIXI.Graphics();
     this.background.lineStyle({ width: 2, color: 0xffffff });
     this.background.beginFill(0x000000);
-    this.background.drawRect(
-      GameApplication.STAGE_WIDTH - 105,
-      GameApplication.STAGE_HEIGHT - 35,
-      100,
-      30
-    );
+    this.background.drawRect(0, 0, 200, 50);
     this.background.endFill();
-    this.background.cacheAsBitmap = true;
+    
     this.addChild(this.background);
   }
-  private createScore() {
-    this.nbrScore = 0;
-    this.score = new PIXI.Text("Score: " + this.nbrScore, {
+  private createText() {
+    this.scoreText = new PIXI.Text("000", {
       fontFamily: "Minercraft",
       fill: 0xffffff,
-      fontSize: 20,
+      fontSize: 40,
     });
+    this.scoreText.anchor.set(0.5);
+    this.scoreText.resolution = 2;    
+    this.scoreText.x = this.background.width * 0.8;
+    this.scoreText.y = this.background.height * 0.5;
+    this.addChild(this.scoreText);
 
-    this.score.resolution = 2;
-    this.score.anchor.set(0.1);
-    this.score.x = GameApplication.STAGE_WIDTH - 90;
-    this.score.y = GameApplication.STAGE_HEIGHT - 30;
-    this.addChild(this.score);
+    this.label = new PIXI.Text("SCORE: ", {
+      fontFamily: "Minercraft",
+      fill: 0xffffff,
+      fontSize: 30,
+    });
+    this.label.anchor.set(0.5);
+    this.label.resolution = 2;    
+    this.label.x = this.background.width * 0.3;
+    this.label.y = this.background.height * 0.5;
+    this.addChild(this.label);
+
   }
 }

@@ -15,7 +15,7 @@ export class Model {
   }
 
   public resetGame() {
-    this.totalNbrBal = 5;
+    this.totalNbrBal = 10;
     this.score = 0;
     this.currentLevel = 1;
   }

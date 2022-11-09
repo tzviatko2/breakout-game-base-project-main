@@ -69,7 +69,7 @@ export class GameObject extends PIXI.Container {
     }
 
     this.renderer.set(id, renderable);
-
+    //console.log(this.renderer);
     this.addChild(renderable);
   }
 
@@ -108,6 +108,14 @@ export class GameObject extends PIXI.Container {
     }
 
     return this.renderer.get(id);
+  }
+
+  public getBehaviorById(id: string) : GameObjectBehavior {
+    if (!this.behavior.has(id)) {
+      console.warn("unregisterBehavior() " + id + " does not exist");
+      return;
+    }
+    return this.behavior.get(id);
   }
 
   protected init() {
